@@ -6,18 +6,25 @@ export class CanvasVideo {
 		this.ctx = canvas.getContext("2d");
 		this.video_element = video_element;
 		this.input = new Input();
+		this.video_size = {w: -1, h: -1};
 	}
 	init() {
 		const that = this;
+		
+		const fps = 60;
 
 		// Draw black screen for init
 		this.ctx.fillStyle = "#000000";
 		this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
 		// Play
-		this.video_element.addEventListener('play', function() {
-			that.video_update(this, null);
-		}, 0);
+		setInterval(function() {
+			that.video_update(that.video_element, that);
+		}, 1000 / fps);
+
+		this.video_element.addEventListener('loadedmetadata', function(e) {
+			that.video_size = {w: this.videoWidth, h: this.videoHeight};
+		}, false);
 
 		// Keypress
 		this.canvas.addEventListener('keydown', function(e) {
@@ -29,26 +36,35 @@ export class CanvasVideo {
 				that.video_element.currentTime += 3;
 			}
 		});
+
+		this.input.init_mouse(this.video_element);
 	}
 	play() {
 		this.video_element.play();
 	}
 	toggle_play() {
 		if (this.video_element.paused == true) {
-			console.log("Resuming Playback...");
 			this.video_element.play();
 		} else {
-			console.log("Pausing...");
 			this.video_element.pause();
 		}
 	}
+	calc_video_size(width, height) {
+		const calc_width = width / this.video_size.w;
+		const calc_height = height / this.video_size.h;
+
+		const max = calc_width > calc_height ? calc_height : calc_width
+
+
+		return [this.video_size.w * max, this.video_size.h * max];
+	}
 	video_update(video, ref) {
-		if (ref == null) {
-			ref = this;
-		}
-		const fps = 60;
-		ref.ctx.drawImage(video, 0, 0, ref.canvas.width, ref.canvas.height);
-		
-		setTimeout(ref.video_update, 1000 / fps, video, ref);
+		const size = ref.calc_video_size(ref.canvas.width, ref.canvas.height);
+
+		// center calculated size
+		const x = ref.canvas.width - size[0];
+		const y = ref.canvas.height - size[1];
+
+		ref.ctx.drawImage(video, x / 2, y / 2, size[0], size[1]);
 	}
 }
