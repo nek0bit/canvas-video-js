@@ -1,4 +1,5 @@
 import { Input } from './input.js';
+import { Ui } from './ui.js';
 
 export class CanvasVideo {
 	constructor(canvas, video_element) {
@@ -6,6 +7,7 @@ export class CanvasVideo {
 		this.ctx = canvas.getContext("2d");
 		this.video_element = video_element;
 		this.input = new Input();
+		this.ui = new Ui(this.canvas);
 		this.video_size = {w: -1, h: -1};
 	}
 	init() {
@@ -58,6 +60,9 @@ export class CanvasVideo {
 
 		return [this.video_size.w * max, this.video_size.h * max];
 	}
+	draw_ui() {
+		this.ui.update(this.video_element);
+	}
 	video_update(video, ref) {
 		const size = ref.calc_video_size(ref.canvas.width, ref.canvas.height);
 
@@ -66,5 +71,7 @@ export class CanvasVideo {
 		const y = ref.canvas.height - size[1];
 
 		ref.ctx.drawImage(video, x / 2, y / 2, size[0], size[1]);
+
+		ref.draw_ui();
 	}
 }
